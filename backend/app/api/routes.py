@@ -10,7 +10,15 @@ from app.data.binance import fetch_company_profile, fetch_klines, fetch_symbol_s
 from app.data.news import fetch_news
 from app.research.backtest import run_backtest
 from app.research.ml import build_ml_report
-from app.schemas.quant import BacktestRequest, BacktestResponse, StrategyInfo
+from app.research.portfolio import optimize_portfolio
+from app.research.screener import run_market_screener
+from app.schemas.quant import (
+    BacktestRequest,
+    BacktestResponse,
+    PortfolioOptimizeRequest,
+    ScreenerRequest,
+    StrategyInfo,
+)
 from app.strategies.registry import STRATEGIES
 
 router = APIRouter()
@@ -103,6 +111,22 @@ async def ml_report(symbol: str = "BTCUSDT", interval: str = "1h", lookback: int
         return {"symbol": symbol.upper(), "interval": interval, "report": report}
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=f"ML report error: {exc}") from exc
+
+
+@router.post("/screener")
+async def screener(payload: ScreenerRequest) -> dict:
+    try:
+        return await run_market_screener(payload.symbols, payload.interval, payload.lookback)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/portfolio/optimize")
+async def portfolio_optimize(payload: PortfolioOptimizeRequest) -> dict:
+    try:
+        return await optimize_portfolio(payload.symbols, payload.interval, payload.lookback, payload.risk_aversion)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.websocket("/ws/ticker")

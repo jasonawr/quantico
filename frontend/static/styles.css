@@ -113,6 +113,7 @@ label {
 
 input,
 select,
+textarea,
 button {
   border-radius: 10px;
   border: 1px solid rgba(140, 160, 214, 0.24);
@@ -128,6 +129,18 @@ button {
   font-weight: 800;
   cursor: pointer;
   border: none;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .metrics {

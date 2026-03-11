@@ -41,3 +41,16 @@ class TickerMessage(BaseModel):
     symbol: str
     price: float
     ts: int
+
+
+class ScreenerRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT", "NVDA"])
+    interval: str = Field(default="1h")
+    lookback: int = Field(default=900, ge=300, le=5000)
+
+
+class PortfolioOptimizeRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT", "NVDA"])
+    interval: str = Field(default="1h")
+    lookback: int = Field(default=900, ge=300, le=5000)
+    risk_aversion: float = Field(default=4.0, ge=0.1, le=20.0)

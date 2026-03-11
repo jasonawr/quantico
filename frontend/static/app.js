@@ -8,6 +8,8 @@ const symbolEl = document.getElementById("symbol");
 const suggestionsEl = document.getElementById("symbolSuggestions");
 const companyCard = document.getElementById("companyCard");
 const mlStatsEl = document.getElementById("mlStats");
+const watchlistEl = document.getElementById("watchlist");
+const screenerBody = document.getElementById("screenerBody");
 
 const plotTheme = {
   paper_bgcolor: "#0f1420",
@@ -238,6 +240,88 @@ function renderCharts(payload) {
   );
 }
 
+function parseWatchlist() {
+  return watchlistEl.value
+    .split(",")
+    .map((x) => x.trim().toUpperCase())
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
+function renderScreener(items) {
+  screenerBody.innerHTML = items
+    .slice(0, 12)
+    .map(
+      (x) =>
+        `<tr><td>${x.rank}</td><td>${x.symbol}</td><td>${Number(x.score).toFixed(3)}</td><td>${(100 * Number(x.ml_prob_up)).toFixed(1)}%</td></tr>`,
+    )
+    .join("");
+}
+
+function renderAllocationChart(payload) {
+  const allocations = payload.allocations || [];
+  if (!allocations.length) {
+    Plotly.purge("allocChart");
+    return;
+  }
+  Plotly.newPlot(
+    "allocChart",
+    [
+      {
+        labels: allocations.map((x) => x.symbol),
+        values: allocations.map((x) => x.weight),
+        type: "pie",
+        hole: 0.55,
+        marker: { colors: ["#1de9b6", "#4fc3f7", "#ffd166", "#ff6b6b", "#9dd5ff", "#7bd389", "#f29e4c"] },
+      },
+    ],
+    {
+      ...plotTheme,
+      title: `Optimized Allocation (Sharpe ${Number(payload.expected_sharpe || 0).toFixed(2)})`,
+    },
+    { responsive: true },
+  );
+}
+
+async function runScreener() {
+  const payload = {
+    symbols: parseWatchlist(),
+    interval: document.getElementById("interval").value,
+    lookback: Number(document.getElementById("lookback").value),
+  };
+  const res = await fetch("/api/screener", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    screenerBody.innerHTML = `<tr><td colspan="4">Screener error</td></tr>`;
+    return;
+  }
+  const data = await res.json();
+  renderScreener(data.items || []);
+}
+
+async function runPortfolioOptimize() {
+  const payload = {
+    symbols: parseWatchlist(),
+    interval: document.getElementById("interval").value,
+    lookback: Number(document.getElementById("lookback").value),
+    risk_aversion: 4.0,
+  };
+  const res = await fetch("/api/portfolio/optimize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    Plotly.purge("allocChart");
+    return;
+  }
+  const data = await res.json();
+  renderAllocationChart(data);
+}
+
 async function runBacktest() {
   statusEl.textContent = "Running research/backtest...";
   const payload = {
@@ -302,6 +386,8 @@ function connectTicker(symbol) {
 }
 
 document.getElementById("runBtn").addEventListener("click", runBacktest);
+document.getElementById("screenerBtn").addEventListener("click", runScreener);
+document.getElementById("optimizeBtn").addEventListener("click", runPortfolioOptimize);
 symbolEl.addEventListener("input", () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => updateSuggestions(symbolEl.value.trim().toUpperCase()), 250);
@@ -313,4 +399,6 @@ symbolEl.addEventListener("change", () => loadCompany(symbolEl.value.trim().toUp
   await loadNews("bitcoin");
   await loadCompany(symbolEl.value.trim().toUpperCase());
   await runBacktest();
+  await runScreener();
+  await runPortfolioOptimize();
 })();

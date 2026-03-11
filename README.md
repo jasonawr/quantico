@@ -11,6 +11,8 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - Performance/risk metrics
 - Monte Carlo PnL cone chart
 - Terminal search + company profile panel
+- Cross-asset screener with ML + momentum + risk composite score
+- Portfolio optimizer with constrained mean-variance allocation
 - Dark UI with interactive charts
 
 ## Stack
@@ -47,6 +49,8 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `GET /api/search?q=apple`
 - `GET /api/company?symbol=AAPL`
 - `GET /api/ml/report?symbol=BTCUSDT&interval=1h&lookback=1200`
+- `POST /api/screener`
+- `POST /api/portfolio/optimize`
 - `POST /api/backtest`
 - `WS /api/ws/ticker?symbol=BTCUSDT`
 

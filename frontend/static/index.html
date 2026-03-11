@@ -54,6 +54,14 @@
           <div class="form-row">
             <button id="runBtn">Run Research + Backtest</button>
           </div>
+          <div class="form-row">
+            <label for="watchlist">Watchlist (comma separated)</label>
+            <textarea id="watchlist" rows="3">BTCUSDT, ETHUSDT, AAPL, MSFT, NVDA, TSLA, AMZN, META, SPY, QQQ</textarea>
+          </div>
+          <div class="button-row">
+            <button id="screenerBtn">Run Screener</button>
+            <button id="optimizeBtn">Optimize Portfolio</button>
+          </div>
           <div id="status" style="color:#8ca0d6; font-size:0.85rem;">Ready</div>
           <div id="companyCard" class="company-card">Terminal profile will load here.</div>
           <div class="news-list" id="newsList"></div>
@@ -69,6 +77,21 @@
             <div class="panel wide">
               <div style="margin-bottom:8px; color:#8ca0d6;">ML Diagnostics</div>
               <div id="mlStats" style="margin-bottom:8px; color:#dce5ff; font-size:0.86rem;"></div>
+            </div>
+            <div id="allocChart" class="chart"></div>
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Screener Leaderboard</div>
+              <table class="trades-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Symbol</th>
+                    <th>Score</th>
+                    <th>ML P(up)</th>
+                  </tr>
+                </thead>
+                <tbody id="screenerBody"></tbody>
+              </table>
             </div>
             <div class="panel wide">
               <div style="margin-bottom:8px; color:#8ca0d6;">Recent Trades</div>
