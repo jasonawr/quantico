@@ -187,18 +187,26 @@ async function runBacktest() {
   loadNews(payload.symbol);
 }
 
-let ws;
+let tickerTimer;
 function connectTicker(symbol) {
-  if (ws) ws.close();
-  const proto = location.protocol === "https:" ? "wss" : "ws";
-  ws = new WebSocket(`${proto}://${location.host}/api/ws/ticker?symbol=${encodeURIComponent(symbol)}`);
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    liveTicker.textContent = `Live ${msg.symbol}: ${Number(msg.price).toFixed(4)}`;
+  if (tickerTimer) clearInterval(tickerTimer);
+
+  const update = async () => {
+    try {
+      const res = await fetch(`/api/ticker?symbol=${encodeURIComponent(symbol)}`);
+      if (!res.ok) {
+        liveTicker.textContent = "Live: unavailable";
+        return;
+      }
+      const msg = await res.json();
+      liveTicker.textContent = `Live ${msg.symbol}: ${Number(msg.price).toFixed(4)}`;
+    } catch {
+      liveTicker.textContent = "Live: unavailable";
+    }
   };
-  ws.onclose = () => {
-    liveTicker.textContent = "Live: disconnected";
-  };
+
+  update();
+  tickerTimer = setInterval(update, 2000);
 }
 
 document.getElementById("runBtn").addEventListener("click", runBacktest);

@@ -42,6 +42,14 @@ async def news(query: str = "bitcoin") -> dict:
         raise HTTPException(status_code=502, detail=f"News provider error: {exc}") from exc
 
 
+@router.get("/ticker")
+async def ticker(symbol: str = "BTCUSDT") -> dict:
+    try:
+        return await fetch_ticker(symbol)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Ticker provider error: {exc}") from exc
+
+
 @router.post("/backtest", response_model=BacktestResponse)
 async def backtest(payload: BacktestRequest) -> BacktestResponse:
     try:
