@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.data.binance import fetch_company_profile, fetch_klines, fetch_symbol_search, fetch_ticker
 from app.data.news import fetch_news
 from app.research.backtest import run_backtest
+from app.research.catalog import research_catalog
 from app.research.ml import build_ml_report
 from app.research.portfolio import optimize_portfolio
 from app.research.screener import run_market_screener
@@ -40,6 +41,11 @@ def get_strategies() -> list[StrategyInfo]:
         )
         for s in STRATEGIES.values()
     ]
+
+
+@router.get("/strategies/catalog")
+def strategies_catalog() -> dict:
+    return research_catalog()
 
 
 @router.get("/news")

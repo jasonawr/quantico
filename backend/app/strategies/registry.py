@@ -52,4 +52,52 @@ STRATEGIES = {
         description="Walk-forward logistic model on market features with confidence-gated long/short signals.",
         complexity="very_high",
     ),
+    "bollinger_mean_reversion": StrategySpec(
+        key="bollinger_mean_reversion",
+        name="Bollinger Mean Reversion",
+        description="Contrarian entries at Bollinger extremes with mean reversion exits.",
+        complexity="medium",
+    ),
+    "donchian_trend": StrategySpec(
+        key="donchian_trend",
+        name="Donchian Breakout Trend",
+        description="Classic channel breakout trend-following system.",
+        complexity="medium",
+    ),
+    "keltner_breakout": StrategySpec(
+        key="keltner_breakout",
+        name="Keltner Channel Breakout",
+        description="Volatility channel breakout using EMA + ATR envelopes.",
+        complexity="high",
+    ),
+    "intraday_reversal": StrategySpec(
+        key="intraday_reversal",
+        name="Short-Term Reversal",
+        description="Fades short-run return shocks using volatility-normalized position sizing.",
+        complexity="high",
+    ),
+    "multi_horizon_momentum": StrategySpec(
+        key="multi_horizon_momentum",
+        name="Multi-Horizon Momentum",
+        description="Combines 10/30/90-bar momentum horizons with volatility scaling.",
+        complexity="high",
+    ),
+    "vol_target_trend": StrategySpec(
+        key="vol_target_trend",
+        name="Vol Target Trend",
+        description="Trend signal with dynamic volatility targeting and leverage caps.",
+        complexity="very_high",
+    ),
+    "entropy_regime_switch": StrategySpec(
+        key="entropy_regime_switch",
+        name="Entropy Regime Switch",
+        description="Switches between trend and mean reversion by entropy regime.",
+        complexity="very_high",
+    ),
+    "trend_strength_blend": StrategySpec(
+        key="trend_strength_blend",
+        name="Trend Strength Blend",
+        description="Composite of EMA spread and slope with noise penalty control.",
+        complexity="high",
+    ),
 }

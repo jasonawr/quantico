@@ -15,6 +15,14 @@ class BacktestRequest(BaseModel):
         "pairs_stat_arb",
         "mesh_composite",
         "ml_adaptive",
+        "bollinger_mean_reversion",
+        "donchian_trend",
+        "keltner_breakout",
+        "intraday_reversal",
+        "multi_horizon_momentum",
+        "vol_target_trend",
+        "entropy_regime_switch",
+        "trend_strength_blend",
     ] = "mesh_composite"
     initial_capital: float = Field(default=10000.0, gt=0)
     fee_bps: float = Field(default=5.0, ge=0)
