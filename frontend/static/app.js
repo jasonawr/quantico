@@ -7,6 +7,7 @@ const newsList = document.getElementById("newsList");
 const symbolEl = document.getElementById("symbol");
 const suggestionsEl = document.getElementById("symbolSuggestions");
 const companyCard = document.getElementById("companyCard");
+const mlStatsEl = document.getElementById("mlStats");
 
 const plotTheme = {
   paper_bgcolor: "#0f1420",
@@ -71,6 +72,50 @@ async function loadNews(query) {
         `<div class="news-item"><a href="${x.link}" target="_blank" rel="noopener noreferrer">${x.title}</a><div>${x.source || "News"} | ${x.pub_date || ""}</div></div>`,
     )
     .join("");
+}
+
+async function loadMlReport(symbol, interval, lookback) {
+  try {
+    const res = await fetch(
+      `/api/ml/report?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&lookback=${encodeURIComponent(lookback)}`,
+    );
+    if (!res.ok) {
+      mlStatsEl.textContent = "ML report unavailable";
+      Plotly.purge("mlChart");
+      return;
+    }
+    const payload = await res.json();
+    const r = payload.report || {};
+    mlStatsEl.textContent = `Accuracy ${(100 * (r.accuracy || 0)).toFixed(1)}% | Precision ${(100 * (r.precision || 0)).toFixed(1)}% | Recall ${(100 * (r.recall || 0)).toFixed(1)}% | F1 ${(r.f1 || 0).toFixed(3)} | N ${r.observations || 0}`;
+
+    const recent = r.recent_probabilities || [];
+    if (recent.length < 2) {
+      Plotly.purge("mlChart");
+      return;
+    }
+    Plotly.newPlot(
+      "mlChart",
+      [
+        {
+          x: recent.map((x) => x.time),
+          y: recent.map((x) => x.prob_up),
+          type: "scatter",
+          mode: "lines",
+          line: { color: "#ffd166", width: 2 },
+          name: "P(up)",
+        },
+      ],
+      {
+        ...plotTheme,
+        title: "ML Up-Probability",
+        yaxis: { title: "Probability", range: [0, 1] },
+        xaxis: { title: "Time" },
+      },
+      { responsive: true },
+    );
+  } catch {
+    mlStatsEl.textContent = "ML report unavailable";
+  }
 }
 
 function renderMetrics(metrics) {
@@ -230,6 +275,7 @@ async function runBacktest() {
   connectTicker(payload.symbol);
   loadNews(payload.symbol);
   loadCompany(payload.symbol);
+  loadMlReport(payload.symbol, payload.interval, payload.lookback);
 }
 
 let tickerTimer;

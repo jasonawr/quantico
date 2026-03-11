@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.data.binance import fetch_company_profile, fetch_klines, fetch_symbol_search, fetch_ticker
 from app.data.news import fetch_news
 from app.research.backtest import run_backtest
+from app.research.ml import build_ml_report
 from app.schemas.quant import BacktestRequest, BacktestResponse, StrategyInfo
 from app.strategies.registry import STRATEGIES
 
@@ -92,6 +93,16 @@ async def backtest(payload: BacktestRequest) -> BacktestResponse:
         raise HTTPException(status_code=502, detail=f"Market data provider error: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/ml/report")
+async def ml_report(symbol: str = "BTCUSDT", interval: str = "1h", lookback: int = 1200) -> dict:
+    try:
+        df = await fetch_klines(symbol, interval, lookback)
+        report = build_ml_report(df)
+        return {"symbol": symbol.upper(), "interval": interval, "report": report}
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=f"ML report error: {exc}") from exc
 
 
 @router.websocket("/ws/ticker")

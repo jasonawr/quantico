@@ -14,6 +14,7 @@ class BacktestRequest(BaseModel):
         "volatility_breakout",
         "pairs_stat_arb",
         "mesh_composite",
+        "ml_adaptive",
     ] = "mesh_composite"
     initial_capital: float = Field(default=10000.0, gt=0)
     fee_bps: float = Field(default=5.0, ge=0)

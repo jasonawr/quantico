@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from app.research.indicators import atr, ema, entropy_like, rolling_zscore, rsi, sharpe_like
+from app.research.ml import ml_adaptive_signal
 
 
 def _clip_position(pos: pd.Series, max_abs: float = 1.0) -> pd.Series:
@@ -79,4 +80,5 @@ STRATEGY_FUNCS = {
     "volatility_breakout": volatility_breakout,
     "pairs_stat_arb": pairs_stat_arb,
     "mesh_composite": mesh_composite,
+    "ml_adaptive": ml_adaptive_signal,
 }

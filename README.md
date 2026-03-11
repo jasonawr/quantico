@@ -6,6 +6,7 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - Multi-provider live ticker stream with fallback (Binance, Coinbase, Yahoo)
 - Real-time finance headlines (Google News RSS query API)
 - Multi-strategy research/backtest engine
+- Adaptive ML strategy with walk-forward logistic training
 - Complex MESH composite strategy
 - Performance/risk metrics
 - Monte Carlo PnL cone chart
@@ -45,6 +46,7 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `GET /api/ticker?symbol=BTCUSDT`
 - `GET /api/search?q=apple`
 - `GET /api/company?symbol=AAPL`
+- `GET /api/ml/report?symbol=BTCUSDT&interval=1h&lookback=1200`
 - `POST /api/backtest`
 - `WS /api/ws/ticker?symbol=BTCUSDT`
 

@@ -46,4 +46,10 @@ STRATEGIES = {
         description="Composite of Momentum, Entropy, Sharpe, and Trend (MESH) with adaptive sizing.",
         complexity="very_high",
     ),
+    "ml_adaptive": StrategySpec(
+        key="ml_adaptive",
+        name="Adaptive ML Classifier",
+        description="Walk-forward logistic model on market features with confidence-gated long/short signals.",
+        complexity="very_high",
+    ),
 }

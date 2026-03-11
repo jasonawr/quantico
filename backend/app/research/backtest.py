@@ -36,7 +36,11 @@ def run_backtest(
         raise ValueError(f"Unknown strategy: {strategy_key}")
 
     signal_fn = STRATEGY_FUNCS[strategy_key]
-    position = signal_fn(df).shift(1).fillna(0.0)
+    # ML strategy is already walk-forward aligned to the traded bar.
+    if strategy_key == "ml_adaptive":
+        position = signal_fn(df).fillna(0.0)
+    else:
+        position = signal_fn(df).shift(1).fillna(0.0)
 
     turnover = (position - position.shift(1).fillna(0.0)).abs()
     fee = turnover * (fee_bps / 10000.0)
