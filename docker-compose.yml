@@ -1,0 +1,15 @@
+services:
+  quantico:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: quantico-app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Quant Forge
+      - DEBUG=false
+      - BINANCE_REST_URL=https://api.binance.com
+      - DEFAULT_SYMBOL=BTCUSDT
+      - DEFAULT_INTERVAL=1m
+    restart: unless-stopped

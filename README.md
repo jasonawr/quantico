@@ -21,6 +21,14 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 2. `python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --app-dir backend`
 3. Open `http://localhost:8000`
 
+## Docker Start
+1. `docker compose up --build`
+2. Open `http://localhost:8000`
+
+## Environment
+- Copy `.env.example` to `.env` if you want to override defaults.
+- All backend settings are loaded from env vars via pydantic settings.
+
 ## API
 - `GET /api/health`
 - `GET /api/strategies`
