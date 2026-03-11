@@ -3,12 +3,13 @@
 Dark-mode full-stack quant research and backtesting app with live market data.
 
 ## Features
-- Real-time ticker stream (WebSocket)
+- Multi-provider live ticker stream with fallback (Binance, Coinbase, Yahoo)
 - Real-time finance headlines (Google News RSS query API)
 - Multi-strategy research/backtest engine
 - Complex MESH composite strategy
 - Performance/risk metrics
 - Monte Carlo PnL cone chart
+- Terminal search + company profile panel
 - Dark UI with interactive charts
 
 ## Stack
@@ -42,10 +43,13 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `GET /api/strategies`
 - `GET /api/news?query=bitcoin`
 - `GET /api/ticker?symbol=BTCUSDT`
+- `GET /api/search?q=apple`
+- `GET /api/company?symbol=AAPL`
 - `POST /api/backtest`
 - `WS /api/ws/ticker?symbol=BTCUSDT`
 
 ## Notes
 - This is research software, not financial advice.
 - Vercel serverless does not support long-lived websocket sessions in this setup; the UI uses HTTP polling for live ticker updates.
+- If one market data provider is blocked in your region (for example Binance `451`), the app automatically falls back to alternative providers.
 - Add broker/exchange execution adapters only after paper-trading validation.

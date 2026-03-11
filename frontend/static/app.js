@@ -4,6 +4,9 @@ const metricsEl = document.getElementById("metrics");
 const tradesBody = document.getElementById("tradesBody");
 const liveTicker = document.getElementById("liveTicker");
 const newsList = document.getElementById("newsList");
+const symbolEl = document.getElementById("symbol");
+const suggestionsEl = document.getElementById("symbolSuggestions");
+const companyCard = document.getElementById("companyCard");
 
 const plotTheme = {
   paper_bgcolor: "#0f1420",
@@ -17,6 +20,41 @@ async function loadStrategies() {
   const data = await res.json();
   strategyEl.innerHTML = data
     .map((s) => `<option value="${s.key}">${s.name} (${s.complexity})</option>`)
+    .join("");
+}
+
+function showCompanyCard(company) {
+  const cap = company.market_cap ? Number(company.market_cap).toLocaleString() : "n/a";
+  companyCard.innerHTML = [
+    `<div style="font-weight:700; color:#dce5ff;">${company.name || company.symbol}</div>`,
+    `<div>${company.symbol} | ${company.exchange || "Unknown exchange"}</div>`,
+    `<div>Sector: ${company.sector || "n/a"} | Industry: ${company.industry || "n/a"}</div>`,
+    `<div>Market Cap: ${cap} | FWD PE: ${company.forward_pe ?? "n/a"} | Beta: ${company.beta ?? "n/a"}</div>`,
+  ].join("");
+}
+
+async function loadCompany(symbol) {
+  try {
+    const res = await fetch(`/api/company?symbol=${encodeURIComponent(symbol)}`);
+    if (!res.ok) return;
+    const company = await res.json();
+    showCompanyCard(company);
+  } catch {
+    companyCard.textContent = "Company profile unavailable for this symbol.";
+  }
+}
+
+let searchTimer;
+async function updateSuggestions(query) {
+  if (query.length < 2) {
+    suggestionsEl.innerHTML = "";
+    return;
+  }
+  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+  if (!res.ok) return;
+  const data = await res.json();
+  suggestionsEl.innerHTML = data.items
+    .map((x) => `<option value="${x.symbol}">${x.name} | ${x.exchange}</option>`)
     .join("");
 }
 
@@ -158,7 +196,7 @@ function renderCharts(payload) {
 async function runBacktest() {
   statusEl.textContent = "Running research/backtest...";
   const payload = {
-    symbol: document.getElementById("symbol").value.toUpperCase(),
+    symbol: symbolEl.value.toUpperCase(),
     interval: document.getElementById("interval").value,
     lookback: Number(document.getElementById("lookback").value),
     strategy: document.getElementById("strategy").value,
@@ -173,7 +211,13 @@ async function runBacktest() {
   });
 
   if (!res.ok) {
-    const msg = await res.text();
+    let msg = "Unknown API error";
+    try {
+      const body = await res.json();
+      msg = body.detail || JSON.stringify(body);
+    } catch {
+      msg = await res.text();
+    }
     statusEl.textContent = `Error: ${msg}`;
     return;
   }
@@ -185,6 +229,7 @@ async function runBacktest() {
   statusEl.textContent = `Done: ${data.strategy} on ${data.symbol}`;
   connectTicker(payload.symbol);
   loadNews(payload.symbol);
+  loadCompany(payload.symbol);
 }
 
 let tickerTimer;
@@ -199,7 +244,8 @@ function connectTicker(symbol) {
         return;
       }
       const msg = await res.json();
-      liveTicker.textContent = `Live ${msg.symbol}: ${Number(msg.price).toFixed(4)}`;
+      const provider = msg.provider ? ` [${msg.provider}]` : "";
+      liveTicker.textContent = `Live ${msg.symbol}: ${Number(msg.price).toFixed(4)}${provider}`;
     } catch {
       liveTicker.textContent = "Live: unavailable";
     }
@@ -210,9 +256,15 @@ function connectTicker(symbol) {
 }
 
 document.getElementById("runBtn").addEventListener("click", runBacktest);
+symbolEl.addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => updateSuggestions(symbolEl.value.trim().toUpperCase()), 250);
+});
+symbolEl.addEventListener("change", () => loadCompany(symbolEl.value.trim().toUpperCase()));
 
 (async () => {
   await loadStrategies();
   await loadNews("bitcoin");
+  await loadCompany(symbolEl.value.trim().toUpperCase());
   await runBacktest();
 })();

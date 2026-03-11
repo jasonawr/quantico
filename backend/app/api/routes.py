@@ -6,7 +6,7 @@ import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi import HTTPException
 
-from app.data.binance import fetch_klines, fetch_ticker
+from app.data.binance import fetch_company_profile, fetch_klines, fetch_symbol_search, fetch_ticker
 from app.data.news import fetch_news
 from app.research.backtest import run_backtest
 from app.schemas.quant import BacktestRequest, BacktestResponse, StrategyInfo
@@ -46,8 +46,26 @@ async def news(query: str = "bitcoin") -> dict:
 async def ticker(symbol: str = "BTCUSDT") -> dict:
     try:
         return await fetch_ticker(symbol)
-    except httpx.HTTPError as exc:
+    except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=f"Ticker provider error: {exc}") from exc
+
+
+@router.get("/search")
+async def search(q: str) -> dict:
+    if len(q.strip()) < 2:
+        return {"items": []}
+    try:
+        return {"items": await fetch_symbol_search(q, limit=12)}
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Search provider error: {exc}") from exc
+
+
+@router.get("/company")
+async def company(symbol: str) -> dict:
+    try:
+        return await fetch_company_profile(symbol)
+    except (httpx.HTTPError, ValueError, IndexError) as exc:
+        raise HTTPException(status_code=502, detail=f"Company provider error: {exc}") from exc
 
 
 @router.post("/backtest", response_model=BacktestResponse)

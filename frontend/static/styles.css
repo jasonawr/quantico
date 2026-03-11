@@ -80,6 +80,17 @@ body {
   padding-top: 10px;
 }
 
+.company-card {
+  border: 1px solid rgba(140, 160, 214, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(10, 18, 34, 0.7);
+  color: var(--muted);
+  font-size: 0.8rem;
+  max-height: 140px;
+  overflow: auto;
+}
+
 .news-item {
   margin-bottom: 10px;
 }

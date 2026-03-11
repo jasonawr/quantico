@@ -21,7 +21,8 @@
         <aside class="panel">
           <div class="form-row">
             <label for="symbol">Symbol</label>
-            <input id="symbol" value="BTCUSDT" />
+            <input id="symbol" value="BTCUSDT" list="symbolSuggestions" />
+            <datalist id="symbolSuggestions"></datalist>
           </div>
           <div class="form-row">
             <label for="interval">Interval</label>
@@ -54,6 +55,7 @@
             <button id="runBtn">Run Research + Backtest</button>
           </div>
           <div id="status" style="color:#8ca0d6; font-size:0.85rem;">Ready</div>
+          <div id="companyCard" class="company-card">Terminal profile will load here.</div>
           <div class="news-list" id="newsList"></div>
         </aside>
 
