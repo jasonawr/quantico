@@ -10,6 +10,7 @@ const companyCard = document.getElementById("companyCard");
 const mlStatsEl = document.getElementById("mlStats");
 const watchlistEl = document.getElementById("watchlist");
 const screenerBody = document.getElementById("screenerBody");
+const labBody = document.getElementById("labBody");
 
 const plotTheme = {
   paper_bgcolor: "#0f1420",
@@ -283,6 +284,44 @@ function renderAllocationChart(payload) {
   );
 }
 
+function renderLabResults(items) {
+  labBody.innerHTML = items
+    .slice(0, 30)
+    .map(
+      (x) =>
+        `<tr><td>${x.symbol}</td><td>${x.strategy}</td><td>${Number(x.score).toFixed(3)}</td><td>${Number(x.test_sharpe).toFixed(2)}</td><td>${(100 * Number(x.test_return)).toFixed(2)}%</td></tr>`,
+    )
+    .join("");
+}
+
+function renderRotation(payload) {
+  const eq = payload.equity_curve || [];
+  if (!eq.length) {
+    Plotly.purge("rotationChart");
+    return;
+  }
+  Plotly.newPlot(
+    "rotationChart",
+    [
+      {
+        x: eq.map((x) => x.time),
+        y: eq.map((x) => x.equity),
+        mode: "lines",
+        type: "scatter",
+        line: { color: "#7bd389", width: 2 },
+        name: "Rotation Equity",
+      },
+    ],
+    {
+      ...plotTheme,
+      title: `Strategy Rotation Equity (Sharpe ${Number(payload.metrics?.sharpe || 0).toFixed(2)})`,
+      xaxis: { title: "Time" },
+      yaxis: { title: "Portfolio Value" },
+    },
+    { responsive: true },
+  );
+}
+
 async function runScreener() {
   const payload = {
     symbols: parseWatchlist(),
@@ -320,6 +359,50 @@ async function runPortfolioOptimize() {
   }
   const data = await res.json();
   renderAllocationChart(data);
+}
+
+async function runStrategyLab() {
+  statusEl.textContent = "Running strategy lab...";
+  const payload = {
+    symbols: parseWatchlist(),
+    interval: document.getElementById("interval").value,
+    lookback: Number(document.getElementById("lookback").value),
+    train_ratio: 0.7,
+    top_n: 30,
+  };
+  const res = await fetch("/api/lab/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    labBody.innerHTML = "<tr><td colspan='5'>Lab error</td></tr>";
+    statusEl.textContent = "Strategy lab failed";
+    return;
+  }
+  const data = await res.json();
+  renderLabResults(data.top_results || []);
+  statusEl.textContent = `Lab done: ${data.top_results?.length || 0} ranked results`;
+}
+
+async function runRotationLab() {
+  const payload = {
+    symbol: symbolEl.value.toUpperCase(),
+    interval: document.getElementById("interval").value,
+    lookback: Number(document.getElementById("lookback").value),
+    rebalance_window: 120,
+  };
+  const res = await fetch("/api/lab/rotate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    Plotly.purge("rotationChart");
+    return;
+  }
+  const data = await res.json();
+  renderRotation(data);
 }
 
 async function runBacktest() {
@@ -388,6 +471,8 @@ function connectTicker(symbol) {
 document.getElementById("runBtn").addEventListener("click", runBacktest);
 document.getElementById("screenerBtn").addEventListener("click", runScreener);
 document.getElementById("optimizeBtn").addEventListener("click", runPortfolioOptimize);
+document.getElementById("labBtn").addEventListener("click", runStrategyLab);
+document.getElementById("rotateBtn").addEventListener("click", runRotationLab);
 symbolEl.addEventListener("input", () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => updateSuggestions(symbolEl.value.trim().toUpperCase()), 250);
@@ -401,4 +486,6 @@ symbolEl.addEventListener("change", () => loadCompany(symbolEl.value.trim().toUp
   await runBacktest();
   await runScreener();
   await runPortfolioOptimize();
+  await runStrategyLab();
+  await runRotationLab();
 })();

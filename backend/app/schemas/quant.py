@@ -62,3 +62,18 @@ class PortfolioOptimizeRequest(BaseModel):
     interval: str = Field(default="1h")
     lookback: int = Field(default=900, ge=300, le=5000)
     risk_aversion: float = Field(default=4.0, ge=0.1, le=20.0)
+
+
+class StrategyLabRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT", "NVDA"])
+    interval: str = Field(default="1h")
+    lookback: int = Field(default=1200, ge=400, le=5000)
+    train_ratio: float = Field(default=0.7, gt=0.5, lt=0.9)
+    top_n: int = Field(default=20, ge=5, le=200)
+
+
+class RotationRequest(BaseModel):
+    symbol: str = Field(default="BTCUSDT")
+    interval: str = Field(default="1h")
+    lookback: int = Field(default=1500, ge=500, le=5000)
+    rebalance_window: int = Field(default=120, ge=40, le=400)

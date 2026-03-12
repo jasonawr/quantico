@@ -10,14 +10,18 @@ from app.data.binance import fetch_company_profile, fetch_klines, fetch_symbol_s
 from app.data.news import fetch_news
 from app.research.backtest import run_backtest
 from app.research.catalog import research_catalog
+from app.research.lab import run_strategy_lab
 from app.research.ml import build_ml_report
 from app.research.portfolio import optimize_portfolio
+from app.research.rotation import simulate_strategy_rotation
 from app.research.screener import run_market_screener
 from app.schemas.quant import (
     BacktestRequest,
     BacktestResponse,
     PortfolioOptimizeRequest,
+    RotationRequest,
     ScreenerRequest,
+    StrategyLabRequest,
     StrategyInfo,
 )
 from app.strategies.registry import STRATEGIES
@@ -131,6 +135,33 @@ async def screener(payload: ScreenerRequest) -> dict:
 async def portfolio_optimize(payload: PortfolioOptimizeRequest) -> dict:
     try:
         return await optimize_portfolio(payload.symbols, payload.interval, payload.lookback, payload.risk_aversion)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/lab/run")
+async def lab_run(payload: StrategyLabRequest) -> dict:
+    try:
+        return await run_strategy_lab(
+            symbols=payload.symbols,
+            interval=payload.interval,
+            lookback=payload.lookback,
+            train_ratio=payload.train_ratio,
+            top_n=payload.top_n,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/lab/rotate")
+async def lab_rotate(payload: RotationRequest) -> dict:
+    try:
+        return await simulate_strategy_rotation(
+            symbol=payload.symbol,
+            interval=payload.interval,
+            lookback=payload.lookback,
+            rebalance_window=payload.rebalance_window,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

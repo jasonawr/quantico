@@ -62,6 +62,10 @@
             <button id="screenerBtn">Run Screener</button>
             <button id="optimizeBtn">Optimize Portfolio</button>
           </div>
+          <div class="button-row">
+            <button id="labBtn">Run Strategy Lab</button>
+            <button id="rotateBtn">Run Rotation</button>
+          </div>
           <div id="status" style="color:#8ca0d6; font-size:0.85rem;">Ready</div>
           <div id="companyCard" class="company-card">Terminal profile will load here.</div>
           <div class="news-list" id="newsList"></div>
@@ -91,6 +95,22 @@
                   </tr>
                 </thead>
                 <tbody id="screenerBody"></tbody>
+              </table>
+            </div>
+            <div id="rotationChart" class="chart"></div>
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Strategy Lab Top Results</div>
+              <table class="trades-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Strategy</th>
+                    <th>Score</th>
+                    <th>Test Sharpe</th>
+                    <th>Test Return</th>
+                  </tr>
+                </thead>
+                <tbody id="labBody"></tbody>
               </table>
             </div>
             <div class="panel wide">
