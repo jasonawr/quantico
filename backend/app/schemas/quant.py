@@ -118,7 +118,7 @@ class LabRunSaveRequest(BaseModel):
 class QuoteBoardRequest(BaseModel):
     symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT", "NVDA", "TSLA"])
     interval: str = Field(default="1h")
-    lookback: int = Field(default=700, ge=200, le=5000)
+    lookback: int = Field(default=320, ge=120, le=5000)
 
 
 class NewsSentimentRequest(BaseModel):

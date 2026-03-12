@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import math
 import random
+import time
 from typing import Any
 
 import numpy as np
 
 from app.data.binance import fetch_klines, fetch_ticker
 from app.data.news import fetch_news
+
+_BOARD_CACHE_TTL_SECONDS = 12.0
+_BOARD_CACHE_MAX_ENTRIES = 64
+_BOARD_CACHE: dict[tuple[tuple[str, ...], str, int], tuple[float, dict[str, Any]]] = {}
 
 
 def _annualization_factor(interval: str) -> float:
@@ -62,19 +68,56 @@ async def _quote_row(symbol: str, interval: str, lookback: int) -> dict[str, Any
     }
 
 
-async def quote_board(symbols: list[str], interval: str = "1h", lookback: int = 700) -> dict:
+def _normalize_symbols(symbols: list[str]) -> list[str]:
     uniq = [x.strip().upper() for x in symbols if x and x.strip()]
-    uniq = list(dict.fromkeys(uniq))[:40]
+    return list(dict.fromkeys(uniq))[:40]
+
+
+def _board_cache_key(symbols: list[str], interval: str, lookback: int) -> tuple[tuple[str, ...], str, int]:
+    return (tuple(symbols), str(interval), int(lookback))
+
+
+def _cache_get(key: tuple[tuple[str, ...], str, int]) -> dict[str, Any] | None:
+    cached = _BOARD_CACHE.get(key)
+    if not cached:
+        return None
+    ts, value = cached
+    if (time.monotonic() - ts) > _BOARD_CACHE_TTL_SECONDS:
+        _BOARD_CACHE.pop(key, None)
+        return None
+    return copy.deepcopy(value)
+
+
+def _cache_set(key: tuple[tuple[str, ...], str, int], value: dict[str, Any]) -> None:
+    _BOARD_CACHE[key] = (time.monotonic(), copy.deepcopy(value))
+    if len(_BOARD_CACHE) <= _BOARD_CACHE_MAX_ENTRIES:
+        return
+    stale = sorted(_BOARD_CACHE.items(), key=lambda item: item[1][0])[: max(1, len(_BOARD_CACHE) // 3)]
+    for cache_key, _ in stale:
+        _BOARD_CACHE.pop(cache_key, None)
+
+
+async def quote_board(symbols: list[str], interval: str = "1h", lookback: int = 320) -> dict:
+    uniq = _normalize_symbols(symbols)
     if not uniq:
         raise ValueError("No symbols provided.")
+    lookback_n = int(max(120, min(5000, int(lookback))))
 
-    semaphore = asyncio.Semaphore(8)
+    cache_key = _board_cache_key(uniq, interval, lookback_n)
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    semaphore = asyncio.Semaphore(6)
     errors: list[dict] = []
 
     async def wrapped(sym: str) -> dict | None:
         async with semaphore:
             try:
-                return await _quote_row(sym, interval, lookback)
+                return await asyncio.wait_for(_quote_row(sym, interval, lookback_n), timeout=12.0)
+            except asyncio.TimeoutError:
+                errors.append({"symbol": sym, "error": "Timed out while loading market data."})
+                return None
             except Exception as exc:  # noqa: BLE001
                 errors.append({"symbol": sym, "error": str(exc)})
                 return None
@@ -84,7 +127,9 @@ async def quote_board(symbols: list[str], interval: str = "1h", lookback: int = 
         raise ValueError("No symbols available from providers.")
 
     rows = sorted(rows, key=lambda x: x["liquidity"], reverse=True)
-    return {"items": rows, "errors": errors, "interval": interval, "lookback": lookback}
+    result = {"items": rows, "errors": errors, "interval": interval, "lookback": lookback_n}
+    _cache_set(cache_key, result)
+    return copy.deepcopy(result)
 
 
 def _bucket_score(value: float, lo: float, hi: float) -> float:

@@ -9,12 +9,27 @@ const palette = document.getElementById("cmdPalette");
 const cmdInput = document.getElementById("cmdInput");
 
 let boardTimer;
+let boardRefreshInFlight = false;
+const BOARD_REFRESH_MS = 15000;
+const REQUEST_TIMEOUT_MS = 15000;
+const LOOKBACK_BY_INTERVAL = {
+  "1m": 260,
+  "5m": 280,
+  "15m": 300,
+  "1h": 320,
+  "4h": 280,
+  "1d": 260,
+};
 
 function authHeaders(extra = {}) {
   const token = localStorage.getItem("jc_session_token") || "";
   const headers = { ...extra };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
+}
+
+function hasSessionToken() {
+  return Boolean(localStorage.getItem("jc_session_token"));
 }
 
 function symbolsFromInput() {
@@ -26,12 +41,38 @@ function symbolsFromInput() {
     .slice(0, 40);
 }
 
-async function api(path, method = "GET", body = null) {
+function boardLookback() {
+  const interval = document.getElementById("xtInterval").value;
+  return LOOKBACK_BY_INTERVAL[interval] || 320;
+}
+
+async function api(path, method = "GET", body = null, timeoutMs = REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const options = { method, headers: authHeaders(body !== null ? { "Content-Type": "application/json" } : {}) };
   if (body !== null) options.body = JSON.stringify(body);
-  const res = await fetch(path, options);
-  if (!res.ok) throw new Error(await res.text());
-  return await res.json();
+  options.signal = controller.signal;
+  try {
+    const res = await fetch(path, options);
+    if (!res.ok) {
+      let message = `HTTP ${res.status}`;
+      try {
+        const payload = await res.json();
+        message = payload.detail || JSON.stringify(payload);
+      } catch {
+        message = await res.text();
+      }
+      throw new Error(message || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      throw new Error(`Request timed out for ${path}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function pct(v) {
@@ -64,6 +105,25 @@ function renderQuoteBoard(items) {
     .join("");
 }
 
+function buildHeatmapFromBoard(items) {
+  if (!items.length) return [];
+  const changes = items.map((x) => Number(x.change_1 || 0));
+  const lo = Math.min(...changes);
+  const hi = Math.max(...changes);
+  const denom = hi - lo || 1;
+  return items.map((row) => {
+    const value = Number(row.change_1 || 0);
+    const score = Math.max(0, Math.min(1, (value - lo) / denom));
+    const hue = Math.round((1 - score) * 10 + score * 140);
+    return {
+      symbol: row.symbol,
+      value,
+      color: `hsl(${hue}, 70%, 45%)`,
+      price: Number(row.price || 0),
+    };
+  });
+}
+
 function renderHeatmap(cells) {
   heatmapEl.innerHTML = cells
     .map(
@@ -89,6 +149,10 @@ function renderBook(book) {
 }
 
 function renderAlerts(items) {
+  if (!items.length) {
+    alertBody.innerHTML = `<tr><td colspan="4" style="color:#95aa94;">No alerts yet.</td></tr>`;
+    return;
+  }
   alertBody.innerHTML = items
     .map(
       (a) =>
@@ -121,6 +185,10 @@ function renderAlerts(items) {
 }
 
 function renderNotes(items) {
+  if (!items.length) {
+    notesBody.innerHTML = `<tr><td colspan="4" style="color:#95aa94;">No notes yet.</td></tr>`;
+    return;
+  }
   notesBody.innerHTML = items
     .map(
       (n) =>
@@ -139,16 +207,27 @@ function renderNotes(items) {
   );
 }
 
-async function refreshBoard() {
+async function refreshBoard({ force = false, quiet = false } = {}) {
+  if (boardRefreshInFlight && !force) return;
+  boardRefreshInFlight = true;
   const payload = {
     symbols: symbolsFromInput(),
     interval: document.getElementById("xtInterval").value,
-    lookback: 700,
+    lookback: boardLookback(),
   };
-  const [board, heat] = await Promise.all([api("/api/board/quotes", "POST", payload), api("/api/board/heatmap", "POST", payload)]);
-  renderQuoteBoard(board.items || []);
-  renderHeatmap((heat.heatmap || {}).cells || []);
-  statusEl.textContent = `Board updated (${(board.items || []).length} symbols)`;
+  const startedAt = performance.now();
+  try {
+    const board = await api("/api/board/quotes", "POST", payload);
+    const items = board.items || [];
+    renderQuoteBoard(items);
+    renderHeatmap(buildHeatmapFromBoard(items));
+    const elapsed = ((performance.now() - startedAt) / 1000).toFixed(2);
+    if (!quiet) {
+      statusEl.textContent = `Board updated (${items.length} symbols) in ${elapsed}s`;
+    }
+  } finally {
+    boardRefreshInFlight = false;
+  }
 }
 
 async function loadOrderBook() {
@@ -164,11 +243,19 @@ async function loadSentiment() {
 }
 
 async function loadAlerts() {
+  if (!hasSessionToken()) {
+    alertBody.innerHTML = `<tr><td colspan="4" style="color:#95aa94;">Sign in on Account page to use alerts.</td></tr>`;
+    return;
+  }
   const data = await api("/api/alerts");
   renderAlerts(data.items || []);
 }
 
 async function createAlert() {
+  if (!hasSessionToken()) {
+    statusEl.textContent = "Please sign in first to create alerts.";
+    return;
+  }
   const payload = {
     symbol: document.getElementById("xtAlertSymbol").value.toUpperCase(),
     direction: document.getElementById("xtAlertDirection").value,
@@ -181,6 +268,10 @@ async function createAlert() {
 }
 
 async function scanAlerts() {
+  if (!hasSessionToken()) {
+    statusEl.textContent = "Please sign in first to scan alerts.";
+    return;
+  }
   const data = await api("/api/alerts/scan", "POST", {});
   const hits = data.triggered || [];
   if (hits.length > 0) {
@@ -191,11 +282,19 @@ async function scanAlerts() {
 }
 
 async function loadNotes() {
+  if (!hasSessionToken()) {
+    notesBody.innerHTML = `<tr><td colspan="4" style="color:#95aa94;">Sign in on Account page to use research notes.</td></tr>`;
+    return;
+  }
   const data = await api("/api/notes?limit=100");
   renderNotes(data.items || []);
 }
 
 async function saveNote() {
+  if (!hasSessionToken()) {
+    statusEl.textContent = "Please sign in first to save notes.";
+    return;
+  }
   await api("/api/notes", "POST", {
     title: document.getElementById("xtNoteTitle").value,
     body: document.getElementById("xtNoteBody").value,
@@ -256,6 +355,7 @@ document.getElementById("xtCreateAlertBtn").addEventListener("click", () => crea
 document.getElementById("xtSaveNoteBtn").addEventListener("click", () => saveNote().catch((e) => (statusEl.textContent = `Error: ${e.message}`)));
 document.getElementById("xtBookBtn").addEventListener("click", () => loadOrderBook().catch((e) => (statusEl.textContent = `Error: ${e.message}`)));
 document.getElementById("xtNewsBtn").addEventListener("click", () => loadSentiment().catch((e) => (statusEl.textContent = `Error: ${e.message}`)));
+document.getElementById("xtInterval").addEventListener("change", () => refreshBoard({ force: true }).catch((e) => (statusEl.textContent = `Error: ${e.message}`)));
 
 window.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -280,11 +380,25 @@ cmdInput.addEventListener("keydown", (e) => {
 });
 
 (async () => {
-  try {
-    await Promise.all([refreshBoard(), loadOrderBook(), loadSentiment(), loadAlerts(), loadNotes()]);
-    if (boardTimer) clearInterval(boardTimer);
-    boardTimer = setInterval(() => refreshBoard().catch(() => {}), 5000);
-  } catch (e) {
-    statusEl.textContent = `Error: ${e.message}`;
+  statusEl.textContent = "Loading board...";
+  const initialJobs = await Promise.allSettled([refreshBoard({ force: true }), loadOrderBook()]);
+  const failures = initialJobs.filter((j) => j.status === "rejected");
+  if (failures.length > 0) {
+    const reason = failures[0].reason?.message || String(failures[0].reason || "unknown error");
+    statusEl.textContent = `Partial load: ${reason}`;
   }
+
+  window.setTimeout(() => {
+    loadSentiment().catch(() => {});
+    if (hasSessionToken()) {
+      loadAlerts().catch(() => {});
+      loadNotes().catch(() => {});
+    } else {
+      renderAlerts([]);
+      renderNotes([]);
+    }
+  }, 50);
+
+  if (boardTimer) clearInterval(boardTimer);
+  boardTimer = setInterval(() => refreshBoard({ quiet: true }).catch(() => {}), BOARD_REFRESH_MS);
 })();
