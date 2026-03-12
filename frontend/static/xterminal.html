@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jason Capital X Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <div class="brand">JASON CAPITAL</div>
+        <a href="/">Home</a>
+        <a href="/terminal.html">Terminal</a>
+        <a href="/xterminal.html" class="active">X Terminal</a>
+        <a href="/lab.html">Lab</a>
+        <a href="/models.html">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+        <a href="/workspace.html">Workspace</a>
+        <a href="/account.html">Account</a>
+      </div>
+
+      <div class="header">
+        <div class="title">Jason Capital X Terminal</div>
+        <div id="xtStatus" class="live-pill">Press Ctrl+K for commands</div>
+      </div>
+
+      <div class="grid">
+        <aside class="panel">
+          <div class="form-row">
+            <label for="xtSymbols">Board Symbols</label>
+            <textarea id="xtSymbols" rows="4">BTCUSDT,ETHUSDT,AAPL,MSFT,NVDA,TSLA,AMZN,META,SPY,QQQ</textarea>
+          </div>
+          <div class="form-row">
+            <label for="xtInterval">Interval</label>
+            <select id="xtInterval">
+              <option value="1m">1m</option>
+              <option value="5m">5m</option>
+              <option value="15m">15m</option>
+              <option value="1h" selected>1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1d</option>
+            </select>
+          </div>
+          <div class="button-row">
+            <button id="xtRefreshBoardBtn">Refresh Board</button>
+            <button id="xtScanAlertsBtn">Scan Alerts</button>
+          </div>
+          <div class="form-row">
+            <label for="xtAlertSymbol">Create Alert Symbol</label>
+            <input id="xtAlertSymbol" value="BTCUSDT" />
+          </div>
+          <div class="button-row">
+            <select id="xtAlertDirection">
+              <option value="above">above</option>
+              <option value="below">below</option>
+            </select>
+            <input id="xtAlertThreshold" type="number" step="0.0001" value="100000" />
+          </div>
+          <div class="form-row">
+            <input id="xtAlertMessage" value="JC X Terminal Alert" />
+          </div>
+          <div class="form-row">
+            <button id="xtCreateAlertBtn">Create Alert</button>
+          </div>
+          <div class="form-row">
+            <label for="xtNoteTitle">Research Note Title</label>
+            <input id="xtNoteTitle" value="Desk Note" />
+          </div>
+          <div class="form-row">
+            <textarea id="xtNoteBody" rows="4">Macro risk check, watch vol regime.</textarea>
+          </div>
+          <div class="form-row">
+            <button id="xtSaveNoteBtn">Save Note</button>
+          </div>
+        </aside>
+
+        <main>
+          <section class="chart-grid">
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Quote Board</div>
+              <table class="trades-table">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>1-Bar</th>
+                    <th>5-Bar</th>
+                    <th>22-Bar</th>
+                    <th>Vol(ann)</th>
+                    <th>Trend</th>
+                    <th>Provider</th>
+                  </tr>
+                </thead>
+                <tbody id="xtQuoteBody"></tbody>
+              </table>
+            </div>
+
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Heatmap</div>
+              <div id="xtHeatmap" class="heatmap-grid"></div>
+            </div>
+
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Synthetic Order Book</div>
+              <div class="form-row"><input id="xtBookSymbol" value="BTCUSDT" /></div>
+              <div class="form-row"><button id="xtBookBtn">Load Book</button></div>
+              <table class="trades-table">
+                <thead><tr><th>Bid Px</th><th>Bid Sz</th><th>Ask Px</th><th>Ask Sz</th></tr></thead>
+                <tbody id="xtBookBody"></tbody>
+              </table>
+            </div>
+
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">News Sentiment</div>
+              <div class="form-row"><input id="xtNewsQuery" value="markets" /></div>
+              <div class="form-row"><button id="xtNewsBtn">Refresh Sentiment</button></div>
+              <div id="xtSentimentSummary" class="company-card"></div>
+            </div>
+
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Alerts</div>
+              <table class="trades-table">
+                <thead><tr><th>ID</th><th>Rule</th><th>State</th><th>Action</th></tr></thead>
+                <tbody id="xtAlertBody"></tbody>
+              </table>
+            </div>
+
+            <div class="panel">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Research Notes</div>
+              <table class="trades-table">
+                <thead><tr><th>ID</th><th>Title</th><th>Updated</th><th>Action</th></tr></thead>
+                <tbody id="xtNotesBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="cmdPalette" class="cmd-palette hidden">
+      <div class="cmd-box panel">
+        <div style="margin-bottom:6px; color:#8ca0d6;">Command Palette</div>
+        <input id="cmdInput" placeholder="Type commands like: board BTCUSDT,ETHUSDT | alert BTCUSDT above 100000" />
+        <div id="cmdHelp" style="margin-top:8px; color:#95aa94; font-size:0.8rem;">
+          Commands: `board symbols...`, `alert SYMBOL above|below PRICE`, `note title | body`, `news QUERY`
+        </div>
+      </div>
+    </div>
+
+    <script src="/xterminal.js"></script>
+  </body>
+</html>

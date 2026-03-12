@@ -102,6 +102,36 @@ def init_db() -> None:
                 updated_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                symbol TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                threshold REAL NOT NULL,
+                message TEXT NOT NULL,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_triggered_at TEXT,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS dashboard_layouts (
+                user_id INTEGER PRIMARY KEY,
+                layout_json TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
             """
         )
 
@@ -319,3 +349,145 @@ def set_paper_account(user_id: int, account: dict) -> dict:
                 payload,
             )
     return get_paper_account(user_id)
+
+
+def list_alerts(user_id: int) -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, symbol, direction, threshold, message, enabled, created_at, last_triggered_at
+            FROM alerts
+            WHERE user_id = ?
+            ORDER BY id DESC
+            """,
+            (user_id,),
+        ).fetchall()
+    return [dict(x) for x in rows]
+
+
+def create_alert(user_id: int, symbol: str, direction: str, threshold: float, message: str) -> dict:
+    direction_n = direction.strip().lower()
+    if direction_n not in {"above", "below"}:
+        raise ValueError("Direction must be 'above' or 'below'.")
+    symbol_n = symbol.strip().upper()
+    if threshold <= 0:
+        raise ValueError("Threshold must be positive.")
+    now = _utc_iso()
+    with connect() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO alerts (user_id, symbol, direction, threshold, message, enabled, created_at, last_triggered_at)
+            VALUES (?, ?, ?, ?, ?, 1, ?, NULL)
+            """,
+            (user_id, symbol_n, direction_n, float(threshold), message.strip() or f"{symbol_n} {direction_n} {threshold}", now),
+        )
+        alert_id = int(cur.lastrowid)
+        row = conn.execute(
+            """
+            SELECT id, symbol, direction, threshold, message, enabled, created_at, last_triggered_at
+            FROM alerts
+            WHERE id = ?
+            """,
+            (alert_id,),
+        ).fetchone()
+    return dict(row)
+
+
+def delete_alert(user_id: int, alert_id: int) -> None:
+    with connect() as conn:
+        conn.execute("DELETE FROM alerts WHERE id = ? AND user_id = ?", (alert_id, user_id))
+
+
+def set_alert_enabled(user_id: int, alert_id: int, enabled: bool) -> dict | None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE alerts SET enabled = ? WHERE id = ? AND user_id = ?",
+            (1 if enabled else 0, alert_id, user_id),
+        )
+        row = conn.execute(
+            "SELECT id, symbol, direction, threshold, message, enabled, created_at, last_triggered_at FROM alerts WHERE id = ? AND user_id = ?",
+            (alert_id, user_id),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def mark_alert_triggered(user_id: int, alert_id: int) -> None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE alerts SET last_triggered_at = ? WHERE id = ? AND user_id = ?",
+            (_utc_iso(), alert_id, user_id),
+        )
+
+
+def get_dashboard_layout(user_id: int) -> dict:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT layout_json, updated_at FROM dashboard_layouts WHERE user_id = ?",
+            (user_id,),
+        ).fetchone()
+    if not row:
+        return {"layout": {}, "updated_at": None}
+    d = dict(row)
+    return {"layout": _json_loads(d.get("layout_json"), {}), "updated_at": d.get("updated_at")}
+
+
+def upsert_dashboard_layout(user_id: int, layout: dict) -> dict:
+    now = _utc_iso()
+    with connect() as conn:
+        existing = conn.execute("SELECT user_id FROM dashboard_layouts WHERE user_id = ?", (user_id,)).fetchone()
+        if existing:
+            conn.execute(
+                "UPDATE dashboard_layouts SET layout_json = ?, updated_at = ? WHERE user_id = ?",
+                (_json_dumps(layout), now, user_id),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO dashboard_layouts (user_id, layout_json, updated_at) VALUES (?, ?, ?)",
+                (user_id, _json_dumps(layout), now),
+            )
+    return get_dashboard_layout(user_id)
+
+
+def create_note(user_id: int, title: str, body: str) -> dict:
+    title_n = title.strip() or "Untitled Note"
+    body_n = body.strip()
+    now = _utc_iso()
+    with connect() as conn:
+        cur = conn.execute(
+            "INSERT INTO notes (user_id, title, body, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (user_id, title_n, body_n, now, now),
+        )
+        note_id = int(cur.lastrowid)
+        row = conn.execute(
+            "SELECT id, title, body, created_at, updated_at FROM notes WHERE id = ? AND user_id = ?",
+            (note_id, user_id),
+        ).fetchone()
+    return dict(row)
+
+
+def update_note(user_id: int, note_id: int, title: str, body: str) -> dict | None:
+    now = _utc_iso()
+    with connect() as conn:
+        conn.execute(
+            "UPDATE notes SET title = ?, body = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+            (title.strip() or "Untitled Note", body.strip(), now, note_id, user_id),
+        )
+        row = conn.execute(
+            "SELECT id, title, body, created_at, updated_at FROM notes WHERE id = ? AND user_id = ?",
+            (note_id, user_id),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def delete_note(user_id: int, note_id: int) -> None:
+    with connect() as conn:
+        conn.execute("DELETE FROM notes WHERE id = ? AND user_id = ?", (note_id, user_id))
+
+
+def list_notes(user_id: int, limit: int = 100) -> list[dict]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, title, body, created_at, updated_at FROM notes WHERE user_id = ? ORDER BY id DESC LIMIT ?",
+            (user_id, max(1, min(limit, 500))),
+        ).fetchall()
+    return [dict(x) for x in rows]

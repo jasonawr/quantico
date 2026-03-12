@@ -18,29 +18,52 @@ from app.research.portfolio import optimize_portfolio
 from app.research.rotation import simulate_strategy_rotation
 from app.research.screener import run_market_screener
 from app.core.db import (
+    create_alert,
+    create_note,
     create_session,
     create_user,
+    delete_alert,
+    delete_note,
+    get_dashboard_layout,
     delete_session,
     delete_watchlist,
     get_paper_account,
     get_user_by_email,
     get_user_by_session,
+    list_alerts,
     list_lab_runs,
+    list_notes,
     list_watchlists,
+    mark_alert_triggered,
     save_lab_run,
+    set_alert_enabled,
     set_paper_account,
+    update_note,
     upsert_watchlist,
+    upsert_dashboard_layout,
     verify_password,
 )
+from app.research.marketboard import (
+    build_heatmap,
+    market_news_sentiment,
+    quote_board,
+    synthetic_order_book,
+)
 from app.schemas.quant import (
+    AlertCreateRequest,
+    AlertToggleRequest,
     BacktestRequest,
     BacktestResponse,
+    DashboardLayoutRequest,
     LabRunSaveRequest,
     LoginRequest,
+    NewsSentimentRequest,
+    NoteCreateRequest,
     PortfolioOptimizeRequest,
     PaperMarkRequest,
     PaperOrderRequest,
     PaperResetRequest,
+    QuoteBoardRequest,
     RegisterRequest,
     RotationRequest,
     ScreenerRequest,
@@ -145,6 +168,115 @@ async def watchlists_delete(request: Request, watchlist_id: int) -> dict:
     return {"ok": True}
 
 
+@router.get("/workspace/layout")
+async def workspace_layout_get(request: Request) -> dict:
+    user = _require_user(request)
+    return get_dashboard_layout(int(user["id"]))
+
+
+@router.post("/workspace/layout")
+async def workspace_layout_set(request: Request, payload: DashboardLayoutRequest) -> dict:
+    user = _require_user(request)
+    return upsert_dashboard_layout(int(user["id"]), payload.layout)
+
+
+@router.get("/notes")
+async def notes_list(request: Request, limit: int = 100) -> dict:
+    user = _require_user(request)
+    return {"items": list_notes(int(user["id"]), limit)}
+
+
+@router.post("/notes")
+async def notes_create(request: Request, payload: NoteCreateRequest) -> dict:
+    user = _require_user(request)
+    return create_note(int(user["id"]), payload.title, payload.body)
+
+
+@router.put("/notes/{note_id}")
+async def notes_update(request: Request, note_id: int, payload: NoteCreateRequest) -> dict:
+    user = _require_user(request)
+    note = update_note(int(user["id"]), note_id, payload.title, payload.body)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found.")
+    return note
+
+
+@router.delete("/notes/{note_id}")
+async def notes_delete(request: Request, note_id: int) -> dict:
+    user = _require_user(request)
+    delete_note(int(user["id"]), note_id)
+    return {"ok": True}
+
+
+@router.get("/alerts")
+async def alerts_list(request: Request) -> dict:
+    user = _require_user(request)
+    return {"items": list_alerts(int(user["id"]))}
+
+
+@router.post("/alerts")
+async def alerts_create(request: Request, payload: AlertCreateRequest) -> dict:
+    user = _require_user(request)
+    try:
+        return create_alert(int(user["id"]), payload.symbol, payload.direction, payload.threshold, payload.message)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete("/alerts/{alert_id}")
+async def alerts_delete(request: Request, alert_id: int) -> dict:
+    user = _require_user(request)
+    delete_alert(int(user["id"]), alert_id)
+    return {"ok": True}
+
+
+@router.post("/alerts/{alert_id}/toggle")
+async def alerts_toggle(request: Request, alert_id: int, payload: AlertToggleRequest) -> dict:
+    user = _require_user(request)
+    alert = set_alert_enabled(int(user["id"]), alert_id, payload.enabled)
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found.")
+    return alert
+
+
+@router.post("/alerts/scan")
+async def alerts_scan(request: Request) -> dict:
+    user = _require_user(request)
+    rows = list_alerts(int(user["id"]))
+    enabled = [x for x in rows if int(x.get("enabled", 0)) == 1]
+    if not enabled:
+        return {"triggered": [], "checked": 0}
+    symbols = sorted({x["symbol"] for x in enabled})
+    quotes: dict[str, float] = {}
+    for sym in symbols:
+        try:
+            t = await fetch_ticker(sym)
+            quotes[sym] = float(t.get("price", 0.0))
+        except Exception:  # noqa: BLE001
+            continue
+    triggered = []
+    for a in enabled:
+        px = quotes.get(a["symbol"])
+        if px is None:
+            continue
+        direction = str(a["direction"]).lower()
+        threshold = float(a["threshold"])
+        hit = (direction == "above" and px >= threshold) or (direction == "below" and px <= threshold)
+        if hit:
+            mark_alert_triggered(int(user["id"]), int(a["id"]))
+            triggered.append(
+                {
+                    "id": int(a["id"]),
+                    "symbol": a["symbol"],
+                    "direction": direction,
+                    "threshold": threshold,
+                    "price": px,
+                    "message": a.get("message", ""),
+                }
+            )
+    return {"triggered": triggered, "checked": len(enabled)}
+
+
 @router.get("/news")
 async def news(query: str = "bitcoin") -> dict:
     try:
@@ -160,6 +292,41 @@ async def ticker(symbol: str = "BTCUSDT") -> dict:
         return await fetch_ticker(symbol)
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=f"Ticker provider error: {exc}") from exc
+
+
+@router.post("/board/quotes")
+async def board_quotes(payload: QuoteBoardRequest) -> dict:
+    try:
+        return await quote_board(payload.symbols, payload.interval, payload.lookback)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/board/heatmap")
+async def board_heatmap(payload: QuoteBoardRequest) -> dict:
+    try:
+        board = await quote_board(payload.symbols, payload.interval, payload.lookback)
+        return {"heatmap": build_heatmap(board.get("items", [])), "board": board}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/board/news-sentiment")
+async def board_news_sentiment(payload: NewsSentimentRequest) -> dict:
+    try:
+        return await market_news_sentiment(payload.query, payload.max_items)
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"News sentiment provider error: {exc}") from exc
+
+
+@router.get("/board/orderbook")
+async def board_orderbook(symbol: str = "BTCUSDT") -> dict:
+    try:
+        t = await fetch_ticker(symbol)
+        price = float(t.get("price", 0.0))
+        return synthetic_order_book(price)
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=f"Order book error: {exc}") from exc
 
 
 @router.get("/search")

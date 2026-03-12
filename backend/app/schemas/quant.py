@@ -113,3 +113,34 @@ class LabRunSaveRequest(BaseModel):
     name: str
     params: dict
     result: dict
+
+
+class QuoteBoardRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT", "NVDA", "TSLA"])
+    interval: str = Field(default="1h")
+    lookback: int = Field(default=700, ge=200, le=5000)
+
+
+class NewsSentimentRequest(BaseModel):
+    query: str = "markets"
+    max_items: int = Field(default=20, ge=5, le=100)
+
+
+class AlertCreateRequest(BaseModel):
+    symbol: str
+    direction: Literal["above", "below"]
+    threshold: float = Field(gt=0)
+    message: str = ""
+
+
+class AlertToggleRequest(BaseModel):
+    enabled: bool
+
+
+class DashboardLayoutRequest(BaseModel):
+    layout: dict
+
+
+class NoteCreateRequest(BaseModel):
+    title: str = "Untitled Note"
+    body: str = ""

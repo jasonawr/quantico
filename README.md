@@ -5,6 +5,7 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 ## Multi-Page App
 - `/` Home
 - `/terminal.html` Research terminal
+- `/xterminal.html` Dense command-driven terminal workspace
 - `/lab.html` Quant lab (screener, optimizer, walk-forward lab, rotation)
 - `/models.html` Strategy catalog
 - `/paper.html` Paper trading desk
@@ -63,8 +64,23 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `GET /api/watchlists`
 - `POST /api/watchlists`
 - `DELETE /api/watchlists/{id}`
+- `GET /api/workspace/layout`
+- `POST /api/workspace/layout`
+- `GET /api/notes`
+- `POST /api/notes`
+- `PUT /api/notes/{id}`
+- `DELETE /api/notes/{id}`
+- `GET /api/alerts`
+- `POST /api/alerts`
+- `DELETE /api/alerts/{id}`
+- `POST /api/alerts/{id}/toggle`
+- `POST /api/alerts/scan`
 - `GET /api/news?query=bitcoin`
 - `GET /api/ticker?symbol=BTCUSDT`
+- `POST /api/board/quotes`
+- `POST /api/board/heatmap`
+- `POST /api/board/news-sentiment`
+- `GET /api/board/orderbook?symbol=BTCUSDT`
 - `GET /api/search?q=apple`
 - `GET /api/company?symbol=AAPL`
 - `GET /api/ml/report?symbol=BTCUSDT&interval=1h&lookback=1200`
