@@ -12,6 +12,7 @@ from app.research.backtest import run_backtest
 from app.research.catalog import research_catalog
 from app.research.lab import run_strategy_lab
 from app.research.ml import build_ml_report
+from app.research.paper import mark_to_market, place_order, reset_paper, state as paper_state
 from app.research.portfolio import optimize_portfolio
 from app.research.rotation import simulate_strategy_rotation
 from app.research.screener import run_market_screener
@@ -19,6 +20,9 @@ from app.schemas.quant import (
     BacktestRequest,
     BacktestResponse,
     PortfolioOptimizeRequest,
+    PaperMarkRequest,
+    PaperOrderRequest,
+    PaperResetRequest,
     RotationRequest,
     ScreenerRequest,
     StrategyLabRequest,
@@ -164,6 +168,29 @@ async def lab_rotate(payload: RotationRequest) -> dict:
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/paper/reset")
+async def paper_reset(payload: PaperResetRequest) -> dict:
+    return reset_paper(payload.cash)
+
+
+@router.post("/paper/order")
+async def paper_order(payload: PaperOrderRequest) -> dict:
+    try:
+        return await place_order(payload.symbol, payload.quantity)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/paper/mark")
+async def paper_mark(payload: PaperMarkRequest) -> dict:
+    return await mark_to_market(payload.symbols)
+
+
+@router.get("/paper/state")
+async def paper_state_view() -> dict:
+    return paper_state.snapshot()
 
 
 @router.websocket("/ws/ticker")

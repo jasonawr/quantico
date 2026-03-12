@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quant Forge Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <a href="/">Home</a>
+        <a href="/terminal.html">Terminal</a>
+        <a href="/lab.html" class="active">Lab</a>
+        <a href="/models.html">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+      </div>
+      <div class="header">
+        <div class="title">Quant Lab</div>
+        <div id="labStatus" class="live-pill">Ready</div>
+      </div>
+      <div class="grid">
+        <aside class="panel">
+          <div class="form-row">
+            <label for="labSymbols">Symbols</label>
+            <textarea id="labSymbols" rows="4">BTCUSDT,ETHUSDT,AAPL,MSFT,NVDA,TSLA,AMZN,META,SPY,QQQ</textarea>
+          </div>
+          <div class="form-row">
+            <label for="labInterval">Interval</label>
+            <select id="labInterval">
+              <option value="1h">1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1d</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="labLookback">Lookback</label>
+            <input id="labLookback" type="number" value="1200" />
+          </div>
+          <div class="button-row">
+            <button id="runScreenerBtn">Screener</button>
+            <button id="runOptimizeBtn">Optimize</button>
+          </div>
+          <div class="button-row">
+            <button id="runLabBtn">Run Lab</button>
+            <button id="runRotateBtn">Rotate</button>
+          </div>
+        </aside>
+        <main>
+          <section class="chart-grid">
+            <div id="labAllocChart" class="chart"></div>
+            <div id="labRotateChart" class="chart"></div>
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Screener</div>
+              <table class="trades-table">
+                <thead>
+                  <tr><th>Rank</th><th>Symbol</th><th>Score</th><th>Sharpe</th></tr>
+                </thead>
+                <tbody id="labScreenerBody"></tbody>
+              </table>
+            </div>
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Strategy Lab Results</div>
+              <table class="trades-table">
+                <thead>
+                  <tr><th>Symbol</th><th>Strategy</th><th>Score</th><th>Test Sharpe</th><th>Test Return</th></tr>
+                </thead>
+                <tbody id="labResultsBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <script src="/lab.js"></script>
+  </body>
+</html>

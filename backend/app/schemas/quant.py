@@ -77,3 +77,16 @@ class RotationRequest(BaseModel):
     interval: str = Field(default="1h")
     lookback: int = Field(default=1500, ge=500, le=5000)
     rebalance_window: int = Field(default=120, ge=40, le=400)
+
+
+class PaperResetRequest(BaseModel):
+    cash: float = Field(default=100000.0, gt=1000)
+
+
+class PaperOrderRequest(BaseModel):
+    symbol: str = Field(default="BTCUSDT")
+    quantity: float = Field(description="Positive for buy, negative for sell.")
+
+
+class PaperMarkRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT"])

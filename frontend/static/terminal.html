@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quant Forge Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <a href="/">Home</a>
+        <a href="/terminal.html" class="active">Terminal</a>
+        <a href="/lab.html">Lab</a>
+        <a href="/models.html">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+      </div>
+      <div class="header">
+        <div class="title">Quant Forge Research Terminal</div>
+        <div id="liveTicker" class="live-pill">Live: --</div>
+      </div>
+
+      <div class="grid">
+        <aside class="panel">
+          <div class="form-row">
+            <label for="symbol">Symbol</label>
+            <input id="symbol" value="BTCUSDT" list="symbolSuggestions" />
+            <datalist id="symbolSuggestions"></datalist>
+          </div>
+          <div class="form-row">
+            <label for="interval">Interval</label>
+            <select id="interval">
+              <option value="1m">1m</option>
+              <option value="5m">5m</option>
+              <option value="15m">15m</option>
+              <option value="1h">1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1d</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="lookback">Lookback bars</label>
+            <input id="lookback" type="number" min="200" max="5000" value="1500" />
+          </div>
+          <div class="form-row">
+            <label for="strategy">Strategy</label>
+            <select id="strategy"></select>
+          </div>
+          <div class="form-row">
+            <label for="initialCapital">Initial capital</label>
+            <input id="initialCapital" type="number" value="10000" />
+          </div>
+          <div class="form-row">
+            <label for="feeBps">Fee bps</label>
+            <input id="feeBps" type="number" value="5" />
+          </div>
+          <div class="form-row">
+            <button id="runBtn">Run Research + Backtest</button>
+          </div>
+          <div id="status" style="color:#8ca0d6; font-size:0.85rem;">Ready</div>
+          <div id="companyCard" class="company-card">Terminal profile will load here.</div>
+          <div class="news-list" id="newsList"></div>
+        </aside>
+
+        <main>
+          <section id="metrics" class="metrics"></section>
+          <section class="chart-grid">
+            <div id="equityChart" class="chart wide"></div>
+            <div id="drawdownChart" class="chart"></div>
+            <div id="mcChart" class="chart"></div>
+            <div id="mlChart" class="chart"></div>
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">ML Diagnostics</div>
+              <div id="mlStats" style="margin-bottom:8px; color:#dce5ff; font-size:0.86rem;"></div>
+            </div>
+            <div class="panel wide">
+              <div style="margin-bottom:8px; color:#8ca0d6;">Recent Trades</div>
+              <table class="trades-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Price</th>
+                    <th>Position</th>
+                  </tr>
+                </thead>
+                <tbody id="tradesBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

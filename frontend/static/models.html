@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quant Forge Models</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <a href="/">Home</a>
+        <a href="/terminal.html">Terminal</a>
+        <a href="/lab.html">Lab</a>
+        <a href="/models.html" class="active">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+      </div>
+      <div class="header">
+        <div class="title">Strategy Catalog</div>
+      </div>
+      <div class="chart-grid">
+        <div class="panel wide">
+          <div style="margin-bottom:8px; color:#8ca0d6;">Executable Strategies</div>
+          <table class="trades-table">
+            <thead>
+              <tr><th>Key</th><th>Name</th><th>Complexity</th><th>Description</th></tr>
+            </thead>
+            <tbody id="modelTableBody"></tbody>
+          </table>
+        </div>
+        <div class="panel wide">
+          <div style="margin-bottom:8px; color:#8ca0d6;">Research Families</div>
+          <div id="familyList"></div>
+        </div>
+      </div>
+    </div>
+    <script src="/models.js"></script>
+  </body>
+</html>
