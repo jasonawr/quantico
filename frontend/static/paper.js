@@ -4,9 +4,9 @@ const positionsBody = document.getElementById("paperPositionsBody");
 const fillsBody = document.getElementById("paperFillsBody");
 
 const theme = {
-  paper_bgcolor: "#0f1420",
-  plot_bgcolor: "#0f1420",
-  font: { color: "#dce5ff", family: "Space Grotesk, sans-serif" },
+  paper_bgcolor: "#090d10",
+  plot_bgcolor: "#090d10",
+  font: { color: "#d9e5d4", family: "IBM Plex Mono, monospace" },
   margin: { l: 45, r: 20, t: 35, b: 40 },
 };
 
@@ -39,7 +39,7 @@ function renderCurve(state) {
   if (!eq.length) return Plotly.purge("paperEquityChart");
   Plotly.newPlot(
     "paperEquityChart",
-    [{ x: eq.map((x) => x.time), y: eq.map((x) => x.equity), mode: "lines", type: "scatter", line: { color: "#1de9b6", width: 2.2 } }],
+    [{ x: eq.map((x) => x.time), y: eq.map((x) => x.equity), mode: "lines", type: "scatter", line: { color: "#34d399", width: 2.2 } }],
     { ...theme, title: "Paper Equity Curve", xaxis: { title: "Time" }, yaxis: { title: "Equity" } },
     { responsive: true },
   );

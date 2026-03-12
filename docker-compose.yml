@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - APP_NAME=Quant Forge
+      - APP_NAME=Jason Capital
       - DEBUG=false
       - BINANCE_REST_URL=https://api.binance.com
       - DEFAULT_SYMBOL=BTCUSDT

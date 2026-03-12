@@ -1,4 +1,4 @@
-# Quant Forge
+# Jason Capital
 
 Dark-mode full-stack quant research and backtesting app with live market data.
 

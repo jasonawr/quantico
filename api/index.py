@@ -13,7 +13,7 @@ if BACKEND_DIR not in sys.path:
 from app.api.routes import router  # noqa: E402
 
 
-app = FastAPI(title="Quant Forge API", version="0.1.0")
+app = FastAPI(title="Jason Capital API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

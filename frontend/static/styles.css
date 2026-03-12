@@ -1,14 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&display=swap");
+
 :root {
-  --bg: #090c13;
-  --panel: #121826;
-  --panel-2: #0f1420;
-  --text: #dce5ff;
-  --muted: #8ca0d6;
-  --accent: #1de9b6;
-  --accent2: #4fc3f7;
-  --danger: #ff6b6b;
-  --warning: #ffd166;
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --bg: #070808;
+  --bg-2: #0a0b0d;
+  --panel: #0b0f11;
+  --panel-2: #11161a;
+  --text: #d9e5d4;
+  --muted: #95aa94;
+  --line: #1f2a25;
+  --accent: #f0b24b;
+  --accent-2: #34d399;
+  --accent-3: #5ea8ff;
+  --danger: #ff6f61;
+  --glow: 0 0 0 1px rgba(240, 178, 75, 0.15), 0 18px 30px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -17,37 +21,58 @@
 
 body {
   margin: 0;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
-  background: radial-gradient(circle at 0% 0%, #13203d 0%, #090c13 45%, #06080d 100%);
+  font-family: "IBM Plex Mono", monospace;
+  background:
+    linear-gradient(180deg, rgba(240, 178, 75, 0.05), rgba(7, 8, 8, 0) 200px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 34px),
+    radial-gradient(circle at 100% 0%, #0f1613 0%, #070808 50%);
   color: var(--text);
 }
 
 .container {
-  max-width: 1500px;
+  max-width: 1720px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 14px;
 }
 
 .top-nav {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #0d1215, #090c0e);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.brand {
+  margin-right: 8px;
+  padding: 6px 10px;
+  border: 1px solid rgba(240, 178, 75, 0.5);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 .top-nav a {
-  color: #9dd5ff;
+  color: #c6d8c6;
   text-decoration: none;
-  border: 1px solid rgba(140, 160, 214, 0.25);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 0.86rem;
-  background: rgba(10, 18, 34, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 0.79rem;
+  background: linear-gradient(180deg, #121a1f, #0d1215);
 }
 
 .top-nav a.active {
-  background: linear-gradient(90deg, rgba(29, 233, 182, 0.2), rgba(79, 195, 247, 0.2));
-  border-color: rgba(29, 233, 182, 0.4);
+  background: linear-gradient(180deg, rgba(240, 178, 75, 0.23), rgba(240, 178, 75, 0.06));
+  border-color: rgba(240, 178, 75, 0.6);
+  color: #ffe2b5;
 }
 
 .hero {
@@ -71,6 +96,8 @@ body {
 
 .home-card h3 {
   margin: 0 0 8px;
+  color: var(--accent);
+  font-family: "Rajdhani", sans-serif;
 }
 
 .home-card p {
@@ -81,63 +108,66 @@ body {
 .header {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .title {
-  font-size: 1.8rem;
-  letter-spacing: 0.06em;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-family: "Rajdhani", sans-serif;
   font-weight: 700;
+  color: var(--accent);
 }
 
 .live-pill {
-  background: rgba(29, 233, 182, 0.12);
-  color: var(--accent);
-  border: 1px solid rgba(29, 233, 182, 0.35);
+  background: rgba(52, 211, 153, 0.13);
+  color: #8bf4d0;
+  border: 1px solid rgba(52, 211, 153, 0.42);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 7px 12px;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 16px;
+  grid-template-columns: 370px 1fr;
+  gap: 12px;
 }
 
 .panel {
   background: linear-gradient(180deg, var(--panel), var(--panel-2));
-  border: 1px solid rgba(140, 160, 214, 0.12);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
-  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--glow);
+  padding: 12px;
 }
 
 .form-row {
   display: grid;
   gap: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .news-list {
-  max-height: 280px;
+  max-height: 300px;
   overflow: auto;
-  border-top: 1px solid rgba(140, 160, 214, 0.15);
-  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
   padding-top: 10px;
 }
 
 .company-card {
-  border: 1px solid rgba(140, 160, 214, 0.2);
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 10px;
-  background: rgba(10, 18, 34, 0.7);
+  background: #090d10;
   color: var(--muted);
-  font-size: 0.8rem;
-  max-height: 140px;
+  font-size: 0.79rem;
+  max-height: 150px;
   overflow: auto;
 }
 
@@ -146,39 +176,46 @@ body {
 }
 
 .news-item a {
-  color: #9dd5ff;
+  color: #9ccfff;
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .news-item div {
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 label {
-  color: var(--muted);
-  font-size: 0.84rem;
+  color: #a8bcac;
+  font-size: 0.77rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 input,
 select,
 textarea,
 button {
-  border-radius: 10px;
-  border: 1px solid rgba(140, 160, 214, 0.24);
-  background: #0a1222;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #0c1115;
   color: var(--text);
-  padding: 10px;
-  font-size: 0.95rem;
+  padding: 9px;
+  font-size: 0.85rem;
+  font-family: "IBM Plex Mono", monospace;
 }
 
 button {
-  background: linear-gradient(90deg, #00bfa6, #039be5);
-  color: #061018;
-  font-weight: 800;
+  background: linear-gradient(90deg, #31474f, #223038);
+  color: #d7ecff;
+  font-weight: 700;
   cursor: pointer;
-  border: none;
+  border-color: #36505a;
+}
+
+button:hover {
+  border-color: var(--accent-3);
 }
 
 textarea {
@@ -190,43 +227,46 @@ textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .metric {
-  background: rgba(11, 18, 34, 0.75);
-  border: 1px solid rgba(79, 195, 247, 0.15);
-  border-radius: 12px;
-  padding: 10px;
+  background: #0b1013;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px;
 }
 
 .metric .k {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
 }
 
 .metric .v {
-  font-size: 1.1rem;
+  font-size: 1rem;
+  color: #f9d39a;
   font-weight: 700;
 }
 
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .chart {
   min-height: 300px;
-  border: 1px solid rgba(140, 160, 214, 0.12);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #090d10;
 }
 
 .wide {
@@ -236,14 +276,21 @@ textarea {
 .trades-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.83rem;
+  font-size: 0.77rem;
 }
 
 .trades-table th,
 .trades-table td {
-  border-bottom: 1px solid rgba(140, 160, 214, 0.12);
+  border-bottom: 1px solid var(--line);
   padding: 7px;
   text-align: left;
+}
+
+.trades-table th {
+  color: #9ec2ff;
+  text-transform: uppercase;
+  font-size: 0.69rem;
+  letter-spacing: 0.05em;
 }
 
 @media (max-width: 1100px) {

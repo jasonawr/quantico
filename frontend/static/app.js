@@ -10,9 +10,9 @@ const companyCard = document.getElementById("companyCard");
 const mlStatsEl = document.getElementById("mlStats");
 
 const plotTheme = {
-  paper_bgcolor: "#0f1420",
-  plot_bgcolor: "#0f1420",
-  font: { color: "#dce5ff", family: "Space Grotesk, sans-serif" },
+  paper_bgcolor: "#090d10",
+  plot_bgcolor: "#090d10",
+  font: { color: "#d9e5d4", family: "IBM Plex Mono, monospace" },
   margin: { l: 45, r: 20, t: 35, b: 40 },
 };
 
@@ -25,7 +25,7 @@ async function loadStrategies() {
 function showCompanyCard(company) {
   const cap = company.market_cap ? Number(company.market_cap).toLocaleString() : "n/a";
   companyCard.innerHTML = [
-    `<div style="font-weight:700; color:#dce5ff;">${company.name || company.symbol}</div>`,
+    `<div style="font-weight:700; color:#f0b24b;">${company.name || company.symbol}</div>`,
     `<div>${company.symbol} | ${company.exchange || "Unknown exchange"}</div>`,
     `<div>Sector: ${company.sector || "n/a"} | Industry: ${company.industry || "n/a"}</div>`,
     `<div>Market Cap: ${cap} | FWD PE: ${company.forward_pe ?? "n/a"} | Beta: ${company.beta ?? "n/a"}</div>`,
@@ -85,7 +85,7 @@ async function loadMlReport(symbol, interval, lookback) {
     }
     Plotly.newPlot(
       "mlChart",
-      [{ x: recent.map((x) => x.time), y: recent.map((x) => x.prob_up), type: "scatter", mode: "lines", line: { color: "#ffd166", width: 2 } }],
+      [{ x: recent.map((x) => x.time), y: recent.map((x) => x.prob_up), type: "scatter", mode: "lines", line: { color: "#f0b24b", width: 2 } }],
       { ...plotTheme, title: "ML Up-Probability", yaxis: { title: "Probability", range: [0, 1] }, xaxis: { title: "Time" } },
       { responsive: true },
     );
@@ -122,8 +122,8 @@ function renderCharts(payload) {
   const eqY = payload.equity_curve.map((x) => x.equity);
   const ddY = payload.drawdown_curve.map((x) => x.drawdown * 100);
 
-  Plotly.newPlot("equityChart", [{ x: eqX, y: eqY, type: "scatter", mode: "lines", line: { color: "#1de9b6", width: 2.2 } }], { ...plotTheme, title: "Equity Curve" }, { responsive: true });
-  Plotly.newPlot("drawdownChart", [{ x: eqX, y: ddY, type: "scatter", mode: "lines", line: { color: "#ff6b6b", width: 2 }, fill: "tozeroy", fillcolor: "rgba(255,107,107,0.2)" }], { ...plotTheme, title: "Drawdown" }, { responsive: true });
+  Plotly.newPlot("equityChart", [{ x: eqX, y: eqY, type: "scatter", mode: "lines", line: { color: "#34d399", width: 2.2 } }], { ...plotTheme, title: "Equity Curve" }, { responsive: true });
+  Plotly.newPlot("drawdownChart", [{ x: eqX, y: ddY, type: "scatter", mode: "lines", line: { color: "#ff6f61", width: 2 }, fill: "tozeroy", fillcolor: "rgba(255,111,97,0.2)" }], { ...plotTheme, title: "Drawdown" }, { responsive: true });
 
   const mc = payload.monte_carlo;
   if (!mc || !mc.percentiles || !mc.percentiles.p50) {
@@ -134,9 +134,9 @@ function renderCharts(payload) {
   Plotly.newPlot(
     "mcChart",
     [
-      { x, y: mc.percentiles.p90, mode: "lines", line: { color: "rgba(79,195,247,0)" }, showlegend: false, hoverinfo: "skip" },
-      { x, y: mc.percentiles.p10, mode: "lines", line: { color: "rgba(79,195,247,0)" }, fill: "tonexty", fillcolor: "rgba(79,195,247,0.25)", name: "10-90% Band" },
-      { x, y: mc.percentiles.p50, mode: "lines", line: { color: "#4fc3f7", width: 2.2 }, name: "Median Path" },
+      { x, y: mc.percentiles.p90, mode: "lines", line: { color: "rgba(94,168,255,0)" }, showlegend: false, hoverinfo: "skip" },
+      { x, y: mc.percentiles.p10, mode: "lines", line: { color: "rgba(94,168,255,0)" }, fill: "tonexty", fillcolor: "rgba(94,168,255,0.22)", name: "10-90% Band" },
+      { x, y: mc.percentiles.p50, mode: "lines", line: { color: "#5ea8ff", width: 2.2 }, name: "Median Path" },
     ],
     { ...plotTheme, title: "Monte Carlo PnL Cone" },
     { responsive: true },
