@@ -3,6 +3,13 @@ const metricsEl = document.getElementById("paperMetrics");
 const positionsBody = document.getElementById("paperPositionsBody");
 const fillsBody = document.getElementById("paperFillsBody");
 
+function authHeaders(extra = {}) {
+  const token = localStorage.getItem("jc_session_token") || "";
+  const headers = { ...extra };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 const theme = {
   paper_bgcolor: "#090d10",
   plot_bgcolor: "#090d10",
@@ -46,13 +53,13 @@ function renderCurve(state) {
 }
 
 async function post(path, payload) {
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const res = await fetch(path, { method: "POST", headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(payload) });
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 }
 
 async function getState() {
-  const res = await fetch("/api/paper/state");
+  const res = await fetch("/api/paper/state", { headers: authHeaders() });
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 }

@@ -8,6 +8,8 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `/lab.html` Quant lab (screener, optimizer, walk-forward lab, rotation)
 - `/models.html` Strategy catalog
 - `/paper.html` Paper trading desk
+- `/workspace.html` Saved watchlists and saved lab runs
+- `/account.html` Register/login/session management
 
 ## Features
 - Multi-provider live ticker stream with fallback (Binance, Coinbase, Yahoo)
@@ -54,6 +56,13 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `GET /api/health`
 - `GET /api/strategies`
 - `GET /api/strategies/catalog`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/watchlists`
+- `POST /api/watchlists`
+- `DELETE /api/watchlists/{id}`
 - `GET /api/news?query=bitcoin`
 - `GET /api/ticker?symbol=BTCUSDT`
 - `GET /api/search?q=apple`
@@ -63,6 +72,8 @@ Dark-mode full-stack quant research and backtesting app with live market data.
 - `POST /api/portfolio/optimize`
 - `POST /api/lab/run`
 - `POST /api/lab/rotate`
+- `POST /api/lab/runs/save`
+- `GET /api/lab/runs?limit=30`
 - `POST /api/paper/reset`
 - `POST /api/paper/order`
 - `POST /api/paper/mark`

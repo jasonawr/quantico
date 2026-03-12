@@ -5,6 +5,13 @@ const lookbackEl = document.getElementById("labLookback");
 const screenerBody = document.getElementById("labScreenerBody");
 const resultsBody = document.getElementById("labResultsBody");
 
+function authHeaders(extra = {}) {
+  const token = localStorage.getItem("jc_session_token") || "";
+  const headers = { ...extra };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 const theme = {
   paper_bgcolor: "#090d10",
   plot_bgcolor: "#090d10",
@@ -60,7 +67,7 @@ function renderRotate(data) {
 }
 
 async function callApi(path, payload) {
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const res = await fetch(path, { method: "POST", headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(payload) });
   if (!res.ok) {
     const body = await res.text();
     throw new Error(body);

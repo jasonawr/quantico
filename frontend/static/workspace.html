@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jason Capital Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <div class="brand">JASON CAPITAL</div>
+        <a href="/">Home</a>
+        <a href="/terminal.html">Terminal</a>
+        <a href="/lab.html">Lab</a>
+        <a href="/models.html">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+        <a href="/workspace.html" class="active">Workspace</a>
+        <a href="/account.html">Account</a>
+      </div>
+      <div class="header">
+        <div class="title">Workspace Manager</div>
+        <div id="workspaceStatus" class="live-pill">Ready</div>
+      </div>
+      <div class="grid">
+        <aside class="panel">
+          <div class="form-row"><label>Watchlist Name</label><input id="wlName" value="Core Watchlist" /></div>
+          <div class="form-row">
+            <label>Symbols (comma separated)</label>
+            <textarea id="wlSymbols" rows="4">BTCUSDT,ETHUSDT,AAPL,MSFT,NVDA,TSLA,AMZN,META,SPY,QQQ</textarea>
+          </div>
+          <div class="button-row">
+            <button id="saveWlBtn">Save Watchlist</button>
+            <button id="refreshWlBtn">Refresh</button>
+          </div>
+          <div class="form-row"><label>Save Lab Snapshot Name</label><input id="labSaveName" value="Morning Lab Snapshot" /></div>
+          <div class="button-row">
+            <button id="saveLabBtn">Save Sample Lab Run</button>
+            <button id="refreshLabBtn">Refresh Runs</button>
+          </div>
+        </aside>
+        <main>
+          <div class="panel">
+            <div style="margin-bottom:8px; color:#8ca0d6;">Watchlists</div>
+            <table class="trades-table">
+              <thead><tr><th>ID</th><th>Name</th><th>Symbols</th></tr></thead>
+              <tbody id="watchlistBody"></tbody>
+            </table>
+          </div>
+          <div class="panel" style="margin-top:12px;">
+            <div style="margin-bottom:8px; color:#8ca0d6;">Saved Lab Runs</div>
+            <table class="trades-table">
+              <thead><tr><th>ID</th><th>Type</th><th>Name</th><th>Created</th></tr></thead>
+              <tbody id="labRunsBody"></tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="/workspace.js"></script>
+  </body>
+</html>

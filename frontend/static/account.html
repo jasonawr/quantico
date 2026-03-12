@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jason Capital Account</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="top-nav">
+        <div class="brand">JASON CAPITAL</div>
+        <a href="/">Home</a>
+        <a href="/terminal.html">Terminal</a>
+        <a href="/lab.html">Lab</a>
+        <a href="/models.html">Models</a>
+        <a href="/paper.html">Paper Trading</a>
+        <a href="/workspace.html">Workspace</a>
+        <a href="/account.html" class="active">Account</a>
+      </div>
+      <div class="header">
+        <div class="title">Account Center</div>
+        <div id="accountStatus" class="live-pill">Disconnected</div>
+      </div>
+      <div class="chart-grid">
+        <div class="panel">
+          <div style="margin-bottom:8px; color:#8ca0d6;">Register</div>
+          <div class="form-row"><label>Email</label><input id="regEmail" type="email" /></div>
+          <div class="form-row"><label>Display Name</label><input id="regName" value="Jason Trader" /></div>
+          <div class="form-row"><label>Password</label><input id="regPassword" type="password" /></div>
+          <div class="form-row"><button id="registerBtn">Create Account</button></div>
+        </div>
+        <div class="panel">
+          <div style="margin-bottom:8px; color:#8ca0d6;">Login</div>
+          <div class="form-row"><label>Email</label><input id="loginEmail" type="email" /></div>
+          <div class="form-row"><label>Password</label><input id="loginPassword" type="password" /></div>
+          <div class="button-row">
+            <button id="loginBtn">Login</button>
+            <button id="logoutBtn">Logout</button>
+          </div>
+        </div>
+        <div class="panel wide">
+          <div style="margin-bottom:8px; color:#8ca0d6;">Session</div>
+          <div id="accountInfo" class="company-card">No active session.</div>
+        </div>
+      </div>
+    </div>
+    <script src="/account.js"></script>
+  </body>
+</html>

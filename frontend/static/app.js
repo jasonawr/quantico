@@ -9,6 +9,13 @@ const suggestionsEl = document.getElementById("symbolSuggestions");
 const companyCard = document.getElementById("companyCard");
 const mlStatsEl = document.getElementById("mlStats");
 
+function authHeaders(extra = {}) {
+  const token = localStorage.getItem("jc_session_token") || "";
+  const headers = { ...extra };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 const plotTheme = {
   paper_bgcolor: "#090d10",
   plot_bgcolor: "#090d10",
@@ -34,7 +41,7 @@ function showCompanyCard(company) {
 
 async function loadCompany(symbol) {
   try {
-    const res = await fetch(`/api/company?symbol=${encodeURIComponent(symbol)}`);
+    const res = await fetch(`/api/company?symbol=${encodeURIComponent(symbol)}`, { headers: authHeaders() });
     if (!res.ok) return;
     const company = await res.json();
     showCompanyCard(company);
@@ -49,14 +56,14 @@ async function updateSuggestions(query) {
     suggestionsEl.innerHTML = "";
     return;
   }
-  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { headers: authHeaders() });
   if (!res.ok) return;
   const data = await res.json();
   suggestionsEl.innerHTML = data.items.map((x) => `<option value="${x.symbol}">${x.name} | ${x.exchange}</option>`).join("");
 }
 
 async function loadNews(query) {
-  const res = await fetch(`/api/news?query=${encodeURIComponent(query || "bitcoin")}`);
+  const res = await fetch(`/api/news?query=${encodeURIComponent(query || "bitcoin")}`, { headers: authHeaders() });
   if (!res.ok) {
     newsList.innerHTML = "<div style='color:#ff6b6b;'>News unavailable</div>";
     return;
@@ -69,7 +76,9 @@ async function loadNews(query) {
 
 async function loadMlReport(symbol, interval, lookback) {
   try {
-    const res = await fetch(`/api/ml/report?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&lookback=${encodeURIComponent(lookback)}`);
+    const res = await fetch(`/api/ml/report?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&lookback=${encodeURIComponent(lookback)}`, {
+      headers: authHeaders(),
+    });
     if (!res.ok) {
       mlStatsEl.textContent = "ML report unavailable";
       Plotly.purge("mlChart");
@@ -153,7 +162,11 @@ async function runBacktest() {
     initial_capital: Number(document.getElementById("initialCapital").value),
     fee_bps: Number(document.getElementById("feeBps").value),
   };
-  const res = await fetch("/api/backtest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const res = await fetch("/api/backtest", {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
   if (!res.ok) {
     let msg = "Unknown API error";
     try {
@@ -181,7 +194,7 @@ function connectTicker(symbol) {
   if (tickerTimer) clearInterval(tickerTimer);
   const update = async () => {
     try {
-      const res = await fetch(`/api/ticker?symbol=${encodeURIComponent(symbol)}`);
+      const res = await fetch(`/api/ticker?symbol=${encodeURIComponent(symbol)}`, { headers: authHeaders() });
       if (!res.ok) return (liveTicker.textContent = "Live: unavailable");
       const msg = await res.json();
       liveTicker.textContent = `Live ${msg.symbol}: ${Number(msg.price).toFixed(4)}${msg.provider ? ` [${msg.provider}]` : ""}`;

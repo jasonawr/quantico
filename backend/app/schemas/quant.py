@@ -90,3 +90,26 @@ class PaperOrderRequest(BaseModel):
 
 class PaperMarkRequest(BaseModel):
     symbols: list[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "AAPL", "MSFT"])
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    display_name: str = "Trader"
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class WatchlistUpsertRequest(BaseModel):
+    name: str
+    symbols: list[str]
+
+
+class LabRunSaveRequest(BaseModel):
+    run_type: str
+    name: str
+    params: dict
+    result: dict
